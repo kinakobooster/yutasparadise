@@ -29,7 +29,7 @@ void settings(){
 void setup() {
 
   frameRate(25);
- // font settings
+  // font settings
   printArray(PFont.list());
   f = createFont("ikamodoki", 12);
   textFont(f);
@@ -62,6 +62,7 @@ void setup() {
 }
 
 void draw() {
+  
   int timer = millis();
   fill(0,15);
   rect(0, 0, width, height);
@@ -78,43 +79,37 @@ void draw() {
   fill(255);
 
   if (timer <= 60000){
-  for(int i = 0; i < teams.length; i++){
+    for(int i = 0; i < teams.length; i++){
       teams[i].Paint();
+    }
+
+    }else{
+      for (int x=0; x<width/cellSize; x++) {
+        for (int y=0; y<height/cellSize; y++) {
+          if(cells[x][y].state != BLANK){
+            teams[cells[x][y].teamID].paintPoint++;
+            teams[cells[x][y].teamID].members[cells[x][y].whoPainted].paintPoint++;
+          }
+        }
+
       }
+      for(int i = 0; i < teams.length ; i++ ){
+        text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", 100,50 + i * 140);
+        for(int j = 0; j < NumberOfIka; j++){
+          text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"
+          + weaponStr[teams[i].members[j].weapon] + "\nキル "
+          + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , 100 + j* 80 ,50 + i * 140 + 20);
 
-}else{
-  for (int x=0; x<width/cellSize; x++) {
-  for (int y=0; y<height/cellSize; y++) {
-    if(cells[x][y].state != BLANK){
-      teams[cells[x][y].teamID].paintPoint++;
-      teams[cells[x][y].teamID].members[cells[x][y].whoPainted].paintPoint++;
-
-    }
-
-  }
-
-}
-  for(int i = 0; i < teams.length ; i++ ){
-    text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", 100,50 + i * 140);
-    for(int j = 0; j < NumberOfIka; j++){
-      text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"
-      + weaponStr[teams[i].members[j].weapon] + "\nキル "
-      + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , 100 + j* 80 ,50 + i * 140 + 20);
-
+        }
+      }
+      noLoop();
     }
   }
 
-  noLoop();
-
-
-
-}
-}
-
-void stop()
-{
-  bgmPlayer.close();
-  sePlayer.close();
-  minim.stop();
-  super.stop();
-}
+  void stop()
+  {
+    bgmPlayer.close();
+    sePlayer.close();
+    minim.stop();
+    super.stop();
+  }
