@@ -23,13 +23,12 @@ public static final int NumberOfIka = 4;
 public static final int NumberOfteams = 4;
 
 void settings(){
-  //frameRate(25);
   size(600, 600);
 }
 
-
 void setup() {
 
+  frameRate(25);
  // font settings
   printArray(PFont.list());
   f = createFont("ikamodoki", 12);
