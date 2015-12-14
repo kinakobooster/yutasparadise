@@ -18,6 +18,7 @@ public Cell[][] cells;
 Team[] teams;
 
 public final color black = (12);
+public final color gray = (220);
 
 public static final int NumberOfIka = 4;
 public static final int NumberOfteams = 4;
@@ -62,7 +63,7 @@ void setup() {
 }
 
 void draw() {
-  
+
   int timer = millis();
   fill(0,15);
   rect(0, 0, width, height);
@@ -70,6 +71,7 @@ void draw() {
   for (int x=0; x<width/cellSize; x++) {
     for (int y=0; y<height/cellSize; y++) {
       if(cells[x][y].state == BLANK) fill(black);
+      else if (cells[x][y].state == WALL) fill(gray);
       else fill(teams[cells[x][y].teamID].teamColor);
 
       rect (x*cellSize, y*cellSize, cellSize, cellSize);
@@ -78,12 +80,12 @@ void draw() {
 
   fill(255);
 
-  if (timer <= 60000){
+  if (timer <= 60000){ //試合時間
     for(int i = 0; i < teams.length; i++){
       teams[i].Paint();
     }
 
-    }else{
+    }else{//試合終了
       for (int x=0; x<width/cellSize; x++) {
         for (int y=0; y<height/cellSize; y++) {
           if(cells[x][y].state != BLANK){
@@ -105,6 +107,21 @@ void draw() {
       noLoop();
     }
   }
+  void mouseDragged() {
+    int onMouseCellx = Math.round(mouseX / cellSize);
+    int onMouseCelly = Math.round(mouseY / cellSize);
+    int cellNumberx  = Math.round(width / cellSize);
+    int cellNumbery  = Math.round(height / cellSize);
+
+    if ( onMouseCellx > 0 && onMouseCellx < cellNumberx && onMouseCelly > 0 && onMouseCelly < cellNumbery) {
+      cells[onMouseCellx][onMouseCelly].ChangeState(WALL);
+      cells[onMouseCellx][Math.abs(onMouseCelly - cellNumbery)].ChangeState(WALL);
+      cells[Math.abs(onMouseCellx - cellNumberx)][onMouseCelly].ChangeState(WALL);
+      cells[Math.abs(onMouseCellx - cellNumberx)][Math.abs(onMouseCelly - cellNumbery)].ChangeState(WALL);
+    }
+  }
+
+
 
   void stop()
   {

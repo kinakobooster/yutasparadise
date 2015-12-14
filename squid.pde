@@ -6,7 +6,7 @@ public static final int ROLLER  = 1;
 public static final int CHARGER = 2;
 public static final int[] reach = {8,1,20};
 public static final int[] range = {2,4,2};
-public static final int[] shotRate = {4,1,8};
+public static final int[] shotRate = {4,1,6};
 public static final String[] weaponStr = {"シューター","ローラー","チャージャー"};
 public static final int UP = 0;
 public static final int DOWN  = 1;
@@ -55,13 +55,13 @@ class Team{
     this.teamName = teamNameDefault[teamID];
 
     for (int i=0;i< NumberOfIka;i++){
-        members[i] = new Squid(teamID, i);
-        members[i].x = this.respawnx;
-        members[i].y = this.respawny;
-      }
+      members[i] = new Squid(teamID, i);
+      members[i].x = this.respawnx;
+      members[i].y = this.respawny;
     }
+  }
 
-    void Paint(){
+  void Paint(){
     for(int i = 0; i < NumberOfIka; i++) members[i].Paint();
   }
 
@@ -71,45 +71,46 @@ class Team{
 class Squid {
 
 
-    int x;
-    int y;
-    float vx;
-    float vy;
-    int ax;
-    int ay;
-    int direction;
-    int weapon;
-    int ikaNumber;
-    int life;
-    int kill = 0;
-    int death = 0;
+  int x;
+  int y;
+  float vx;
+  float vy;
+  float ax;
+  float ay;
+  int direction;
+  int weapon;
+  int ikaNumber;
+  int life;
+  int kill = 0;
+  int death = 0;
 
-    int teamID;
-    int paintPoint;
+  int teamID;
+  int paintPoint;
 
-    boolean isPlaying;
+  boolean isPlaying;
 
-    Squid(int teamID,int ikaNumber){
+  Squid(int teamID,int ikaNumber){
 
-      vx = 0;
-      vy = 0;
-      ax = 0;
-      ay = 0;
+    vx = 0;
+    vy = 0;
+    ax = 0;
+    ay = 0;
 
-      this.teamID = teamID;
-      this.ikaNumber = ikaNumber;
-      this.weapon = (teamID + ikaNumber) % 3;
-      life = 3;
-      paintPoint = 0;
-      isPlaying = true;
-    }
+    this.teamID = teamID;
+    this.ikaNumber = ikaNumber;
+    this.weapon = (teamID + ikaNumber) % 3;
+    life = 3;
+    paintPoint = 0;
+    isPlaying = true;
+  }
 
   void RandomWalkAcc(){
     Random rnd = new Random();
     this.ax += -1 + (int)rnd.nextInt(3);
     this.ay += -1 + (int)rnd.nextInt(3);
-    this.vx += this.ax;
-    this.vy += this.ay;
+
+    this.vx += this.ax / 10;
+    this.vy += this.ay / 10;
   }
 
   void RandomWalkVel(){
@@ -141,15 +142,15 @@ class Squid {
 
       for (int i = 0;  i < 7  ; i++){
         for(int j = 0; j < 7 ; j++){
-           if(i*i + j * j < 7*7 && (deadx + i <  width/cellSize) && (deady + j <  width/cellSize)
+          if(i*i + j * j < 7*7 && (deadx + i <  width/cellSize) && (deady + j <  width/cellSize)
           && (deadx - i >  0) && (deady - j >  0) ){
 
 
-             cells[deadx+i][deady+j].Painted(killTeamID, killSquidID);
-             cells[deadx-i][deady+j].Painted(killTeamID, killSquidID);
-             cells[deadx+i][deady-j].Painted(killTeamID, killSquidID);
-             cells[deadx-i][deady-j].Painted(killTeamID, killSquidID);
-           }
+            cells[deadx+i][deady+j].Painted(killTeamID, killSquidID);
+            cells[deadx-i][deady+j].Painted(killTeamID, killSquidID);
+            cells[deadx+i][deady-j].Painted(killTeamID, killSquidID);
+            cells[deadx-i][deady-j].Painted(killTeamID, killSquidID);
+          }
         }
       }
 
@@ -170,83 +171,102 @@ class Squid {
 
 
   void Walk(){
-    this.x += this.vx;
-    this.y += this.vy;
-  }
-
-  void StopWalking(){
-    this.isPlaying = false;
-  }
+    int nextx = (int)(this.x + this.vx);
+    int nexty = (int)(this.y + this.vy);
 
 
-  void ToBeInFrame(){
-    while(this.x < 0)          this.x = this.x + width;
-    while(this.x >= width)     this.x = this.x - width;
-    while(this.y < 0)          this.y = this.y + height;
-    while(this.y >= height)    this.y = this.y - height;
-  }
+    if(nextx > 0 && nextx < width && nexty > 0 && nexty < height && cells[Math.round(nextx/cellSize)][Math.round(nexty/cellSize)].state != WALL ){
+      this.x = nextx;
+      this.y = nexty;
 
-    void ReflectWall(){
-      if(this.x < 0){
-      this.x  = 1;
-      this.vx *= -1;
+
+      }else{
+        this.vx *= -1;
+        this.vy *= -1;
       }
-      if(this.x >= width){
-      this.x  = width-1;
-      this.vx *= -1;
-      }
-      if(this.y < 0){
-      this.y  = 1;
-      this.vy *= -1;
-      }
-      if(this.y >= height){
-      this.y  = height-1;
-      this.vy *= -1;
-      }
-
     }
 
-  void DrawSquid(){
+    void StopWalking(){
+      this.isPlaying = false;
+    }
 
-        pushMatrix();
-        translate(this.x,this.y);
-        Random rnd = new Random();
 
-        if(Math.abs(vx) > Math.abs(vy)){
-             if(vx > 0){rotate(PI     /2); direction = RIGHT ;}
-             else if(vx == 0){
-               direction = rnd.nextInt(2) + 2;
-             }
-             else{       rotate(PI  *3 /2); direction = LEFT  ;}
-        }else if(Math.abs(vx) == Math.abs(vy)){
-            if(vx > 0){
-              rotate(PI/2);
-              direction = RIGHT;
-            }
-            else if(vx == 0){
-              direction = rnd.nextInt(2) + 2;
-            }
-            else{
-              rotate(PI  *3 /2); direction = LEFT ;
-            }
-        }
-        else{
-             if(vy > 0){rotate(PI ); direction = UP ;}
-             else if(vy == 0){
-               direction = rnd.nextInt(2);
-             }
-              else{
-                      rotate(0);
-                      direction = DOWN;
-                    }
-        }
+    void ToBeInFrame(){
+      while(this.x < 0)          this.x = this.x + width;
+      while(this.x >= width)     this.x = this.x - width;
+      while(this.y < 0)          this.y = this.y + height;
+      while(this.y >= height)    this.y = this.y - height;
+    }
 
-        shape(ikaShape,0,0,5*this.life,5*this.life);
-        popMatrix();
+    /*
+    void ReflectWall(){
+    if(this.x < 0){
+    this.x  = 1;
+    this.vx *= -1;
+  }
+  if(this.x >= width){
+  this.x  = width-1;
+  this.vx *= -1;
+}
+if(this.y < 0){
+this.y  = 1;
+this.vy *= -1;
+}
+if(this.y >= height){
+this.y  = height-1;
+this.vy *= -1;
+}
+if(cells[Math.round(this.x / cellSize)][Math.round(this.y / cellSize)].state == WALL){
+
+}
+
+
+}
+*/
+
+void DrawSquid(){
+
+  pushMatrix();
+  translate(this.x,this.y);
+  Random rnd = new Random();
+
+  if(Math.abs(vx) > Math.abs(vy)){
+    if(vx > 0){rotate(PI     /2); direction = RIGHT ;}
+    else if(vx == 0){
+      direction = rnd.nextInt(2) + 2;
+    }
+    else{       rotate(PI  *3 /2); direction = LEFT  ;}
+    }else if(Math.abs(vx) == Math.abs(vy)){
+      if(vx > 0){
+        rotate(PI/2);
+        direction = RIGHT;
+      }
+      else if(vx == 0){
+        direction = rnd.nextInt(2) + 2;
+      }
+      else{
+        rotate(PI  *3 /2); direction = LEFT ;
+      }
+    }
+    else{
+      if(vy > 0){rotate(PI ); direction = UP ;}
+      else if(vy == 0){
+        direction = rnd.nextInt(2);
+      }
+      else{
+        rotate(0);
+        direction = DOWN;
+      }
+    }
+
+    shape(ikaShape,0,0,5*this.life,5*this.life);
+    popMatrix();
 
   }
 
   void Shot(){
+    this.SlowDown();
+    boolean isWall = false;
 
     switch(direction){
       case UP:
@@ -254,9 +274,15 @@ class Squid {
         for (int j = 0 ; j < reach[this.weapon];j++){
           int px = (Math.round(this.x / cellSize) - i - (range[this.weapon] / 2));
           int py = Math.round(this.y / cellSize) - j;
-          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0)
-          cells[px][py].Painted(this.teamID,this.ikaNumber);
+          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0){
+            if(cells[px][py].state == WALL){
+              isWall = true;
+              break;
+            }
+            cells[px][py].Painted(this.teamID,this.ikaNumber);
+          }
         }
+        if(isWall) break;
       }
 
       break;
@@ -265,9 +291,15 @@ class Squid {
         for (int j = 0 ; j < reach[this.weapon];j++){
           int px = (Math.round(this.x / cellSize) - i - (range[this.weapon] / 2));
           int py = Math.round(this.y / cellSize) + j;
-          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0)
-          cells[px][py].Painted(this.teamID,this.ikaNumber);
+          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0){
+            if(cells[px][py].state == WALL){
+              isWall = true;
+              break;
+            }
+            cells[px][py].Painted(this.teamID,this.ikaNumber);
+          }
         }
+        if(isWall) break;
       }
       break;
 
@@ -276,9 +308,15 @@ class Squid {
         for (int j = 0 ; j < range[this.weapon];j++){
           int px = Math.round(this.x / cellSize) - i ;
           int py = Math.round(this.y / cellSize) - j - (range[this.weapon] / 2);
-          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0)
-          cells[px][py].Painted(this.teamID,this.ikaNumber);
+          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0){
+            if(cells[px][py].state == WALL){
+              isWall = true;
+              break;
+            }
+            cells[px][py].Painted(this.teamID,this.ikaNumber);
+          }
         }
+        if(isWall) break;
       }
       break;
 
@@ -287,9 +325,15 @@ class Squid {
         for (int j = 0 ; j < range[this.weapon];j++){
           int px = Math.round(this.x / cellSize) + i;
           int py = Math.round(this.y / cellSize) + j- (range[this.weapon] / 2);
-          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0)
-          cells[px][py].Painted(this.teamID,this.ikaNumber);
+          if(px < width/cellSize && py < height/cellSize && px >= 0 && py >=0){
+            if(cells[px][py].state == WALL){
+              isWall = true;
+              break;
+            }
+            cells[px][py].Painted(this.teamID,this.ikaNumber);
+          }
         }
+        if(isWall) break;
       }
       break;
 
@@ -302,32 +346,34 @@ class Squid {
 
   void Paint(){
     if(this.isPlaying){
-        this.isDead();
-        this.DrawSquid();
-        this.Walk();
-        this.ReflectWall();
+      this.isDead();
+      this.Walk();
+      this.DrawSquid();
 
-        if(cells[Math.round(this.x / cellSize)][Math.round(this.y / cellSize)].state == BLANK){
-             this.SlowDown();
-        }
-        else if( cells[Math.round(this.x / cellSize)][Math.round(this.y / cellSize)].teamID == this.teamID){
-            this.RandomWalkVel();
-            this.life = 3;
+
+      //this.ReflectWall();
+
+      if(cells[Math.round(this.x / cellSize)][Math.round(this.y / cellSize)].state == BLANK){
+        this.SlowDown();
+      }
+      else if( cells[Math.round(this.x / cellSize)][Math.round(this.y / cellSize)].teamID == this.teamID){
+        this.RandomWalkVel();
+        this.life = 3;
         }else{
-            this.vx *= 0.2; this.vy *= 0.2 ;
-            this.life--;
+          this.vx *= 0.2; this.vy *= 0.2 ;
+          this.life--;
         }
 
-// 足元を塗る
+        // 足元を塗る
         cells[Math.round(this.x / cellSize)][Math.round(this.y / cellSize)].Painted(this.teamID,this.ikaNumber);
 
-// ブキの発射タイミング
+        // ブキの発射タイミング
         Random rnd = new Random();
         if(this.weapon == ROLLER && (frameCount % 50 > 20)) this.Shot();
         if(this.weapon == SHOOTER && (frameCount % 50 > 5)) this.Shot();
         else if ((frameCount + rnd.nextInt(25))% (10 * shotRate[this.weapon])  == 0) this.Shot();
 
-        }
+      }
     }
 
-}
+  }
