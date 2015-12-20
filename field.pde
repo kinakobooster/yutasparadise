@@ -15,11 +15,9 @@ class Cell{
 
   void Painted(int teamID,int ikaNumber){
     if(this.state != WALL){
-
       this.state = PAINTED;
       this.teamID = teamID;
       this.whoPainted = ikaNumber;
-
     }
   }
 
