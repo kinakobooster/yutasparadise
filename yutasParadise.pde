@@ -29,9 +29,13 @@ public static final int CELLSIZE = 10;
 public static final int CELLNUMBERX = Math.round(FIELDSIZEX / CELLSIZE);
 public static final int CELLNUMBERY = Math.round(FIELDSIZEY / CELLSIZE);
 
+public static final int BEFOREBATTLE = 0;
+public static final int BATTLE = 1;
+public static final int ENDBATTLE = 2;
 
-
-
+int startTime;
+int gameState;
+int timer;
 
 void settings(){
   size(FIELDSIZEX + 400, FIELDSIZEY);
@@ -39,7 +43,7 @@ void settings(){
 }
 
 void setup() {
-
+  startTime = 0;
   frameRate(25);
   // font settings
   printArray(PFont.list());
@@ -50,7 +54,7 @@ void setup() {
   minim = new Minim(this);
   bgmPlayer = minim.loadFile("bgm.mp3");
   sePlayer = minim.loadFile("dead.mp3");
-  bgmPlayer.play();
+
 
   // shape settings
   ikaShape = loadShape("ika3.svg");
@@ -71,76 +75,49 @@ void setup() {
   for(int i = 0; i < NUMBEROFTEAMS; i++){
     teams[i] = new Team(i);
   }
+  gameState = BEFOREBATTLE;
 
 }
 
 void draw() {
 
-  int timer = millis();
+  timer = millis();
 
+    for (int x=0; x<FIELDSIZEX/CELLSIZE; x++) {
+      for (int y=0; y<FIELDSIZEY/CELLSIZE; y++) {
+        if(cells[x][y].state == BLANK) fill(black);
+        else if (cells[x][y].state == WALL) fill(gray);
+        else fill(teams[cells[x][y].teamID].teamColor);
 
-  for (int x=0; x<FIELDSIZEX/CELLSIZE; x++) {
-    for (int y=0; y<FIELDSIZEY/CELLSIZE; y++) {
-      if(cells[x][y].state == BLANK) fill(black);
-      else if (cells[x][y].state == WALL) fill(gray);
-      else fill(teams[cells[x][y].teamID].teamColor);
-
-      rect (x*CELLSIZE, y*CELLSIZE, CELLSIZE, CELLSIZE);
+        rect (x*CELLSIZE, y*CELLSIZE, CELLSIZE, CELLSIZE);
+      }
     }
+
+  switch (gameState){
+    case  BEFOREBATTLE :
+      BattleSetup();
+      break;
+
+    case  BATTLE :
+      Battle();
+      break;
+
+    case  ENDBATTLE :
+
+    noLoop();
+    break;
+
+
   }
 
-  fill(255);
-
-  if (timer <= 60000){ //試合時間
-
-    for(int i = 0; i < teams.length; i++){
-      teams[i].Paint();
-    }
-
-    if(frameCount % 25 == 0){
-      fill(0);
-      rect(FIELDSIZEX, 0, 400, height);
-
-      for(int i=0; i <NUMBEROFTEAMS; i++){
-        teams[i].paintPoint = 0;
-        for(int j=0; j <NUMBEROFIKA; j++){
-          teams[i].members[j].paintPoint = 0;
-        }
-
-      }
-
-      for (int x=0; x<FIELDSIZEX/CELLSIZE; x++) {
-        for (int y=0; y<FIELDSIZEY/CELLSIZE; y++) {
-          if(cells[x][y].state != BLANK){
-            teams[cells[x][y].teamID].paintPoint++;
-            teams[cells[x][y].teamID].members[cells[x][y].whoPainted].paintPoint++;
-          }
-        }
-      }
-      fill(255);
 
 
 
-      for(int i = 0; i < teams.length ; i++ ){
-        fill(teams[i].teamColor);
-        text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", width - 380,50 + i * 140);
-        for(int j = 0; j < NUMBEROFIKA; j++){
-          text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"
-          + weaponStr[teams[i].members[j].weapon] + "\nキル "
-          + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , width - 380 + j* 80 ,50 + i * 140 + 20);
-        }
-      }
 
 
-      }
-
-
-    }else{//試合終了
-
-
-      noLoop();
-    }
   }
+
+
   void mouseDragged() {
     int onMouseCellx = Math.round(mouseX / CELLSIZE);
     int onMouseCelly = Math.round(mouseY / CELLSIZE);
@@ -152,8 +129,89 @@ void draw() {
       cells[Math.abs(onMouseCellx - CELLNUMBERX)][Math.abs(onMouseCelly - CELLNUMBERY)].ChangeState(WALL);
     }
   }
+  void mousePressed(){
+    if(gameState == BEFOREBATTLE && RectOver(FIELDSIZEX + 20, FIELDSIZEY /2 - 40, 60, 40) ) {
+      gameState = BATTLE;
+      bgmPlayer.play();
+      startTime = timer;
+    }
+  }
+
+  boolean RectOver(int x,int y, int w,int h){
+  if (mouseX >= x && mouseX <= x+w &&
+      mouseY >= y && mouseY <= y+h) {
+    return true;
+  } else {
+    return false;
+    }
+  }
+
+    void BattleSetup(){
+      noFill();
+      stroke(200);
+      rect(0,0,FIELDSIZEX,FIELDSIZEY);
+      rect(FIELDSIZEX + 20, FIELDSIZEY /2 - 40, 60, 40);
+
+      noStroke();
+      fill(255);
+      text("スタート", FIELDSIZEX + 40, FIELDSIZEY /2 -20);
+
+    }
+
+    void Battle(){
+      if(timer - startTime >= 61000) {
+        gameState = ENDBATTLE;
+        return;
+        }
+
+        //イカを動かす
+        for(int i = 0; i < teams.length; i++){
+          teams[i].Paint();
+        }
+
+        //イカの状態を出す
 
 
+        if(frameCount % 25 == 0){
+          fill(0);
+          rect(FIELDSIZEX, 0, 400, height);
+
+          for(int i=0; i <NUMBEROFTEAMS; i++){
+            teams[i].paintPoint = 0;
+            for(int j=0; j <NUMBEROFIKA; j++){
+              teams[i].members[j].paintPoint = 0;
+            }
+
+          }
+
+          for (int x=0; x<FIELDSIZEX/CELLSIZE; x++) {
+            for (int y=0; y<FIELDSIZEY/CELLSIZE; y++) {
+              if(cells[x][y].state != BLANK){
+                teams[cells[x][y].teamID].paintPoint++;
+                teams[cells[x][y].teamID].members[cells[x][y].whoPainted].paintPoint++;
+              }
+            }
+          }
+          fill(255);
+
+
+
+          for(int i = 0; i < teams.length ; i++ ){
+            fill(teams[i].teamColor);
+            text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", width - 380,50 + i * 140);
+            for(int j = 0; j < NUMBEROFIKA; j++){
+              text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"
+              + weaponStr[teams[i].members[j].weapon] + "\nキル "
+              + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , width - 380 + j* 80 ,50 + i * 140 + 20);
+            }
+          }
+
+
+          }
+
+
+
+      }
 
   void stop()
   {

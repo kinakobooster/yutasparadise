@@ -47,6 +47,7 @@ class Team{
     }
 
     this.teamName = teamNameDefault[teamID];
+    
 
     for (int i=0;i< NUMBEROFIKA;i++){
       members[i] = new Squid(teamID, i);
@@ -196,7 +197,7 @@ class Squid {
 
 
     void DrawSquid(){
-
+      fill(255);
       pushMatrix();
       translate(this.position.x,this.position.y);
       text(String.valueOf(ikaNumber+1),-16,-16);
@@ -219,7 +220,7 @@ class Squid {
                     this.remainInk--;
                     cells[(int)(ppos.x/CELLSIZE)][(int)(ppos.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
                     }else{
-                      break;
+                      return;
                       }
                   }
           }
