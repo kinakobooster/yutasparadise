@@ -24,4 +24,5 @@ class Cell{
   void ChangeState(int state){
     this.state = state;
   }
+
 }

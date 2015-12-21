@@ -122,6 +122,7 @@ void draw() {
 
 
       for(int i = 0; i < teams.length ; i++ ){
+        fill(teams[i].teamColor);
         text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", width - 380,50 + i * 140);
         for(int j = 0; j < NUMBEROFIKA; j++){
           text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"

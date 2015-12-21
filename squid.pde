@@ -4,14 +4,11 @@ final int PADDING = 40;
 public static final int SHOOTER = 0;
 public static final int ROLLER  = 1;
 public static final int CHARGER = 2;
-public static final int[] reach = {8,1,20};
-public static final int[] range = {2,4,2};
-public static final int[] shotRate = {4,1,6};
+public static final int[] reach = {6,3,20};
+public static final int[] range = {15,80,5}; //degree
+public static final int[] shotRate = {4,2,20};
 public static final String[] weaponStr = {"シューター","ローラー","チャージャー"};
-public static final int UP = 0;
-public static final int DOWN  = 1;
-public static final int RIGHT = 2;
-public static final int LEFT = 3;
+
 
 class Team{
   int teamID;
@@ -70,16 +67,10 @@ class Squid {
   PVector acceleration;
   float r;
 
-
-  int x;
-  int y;
-  float vx;
-  float vy;
-  float ax;
-  float ay;
-
-  int direction;
   int weapon;
+  int remainInk;
+
+
   int ikaNumber;
   int life;
   int kill = 0;
@@ -87,6 +78,7 @@ class Squid {
 
   int teamID;
   int paintPoint;
+  int deadTime;
 
   boolean isPlaying;
 
@@ -95,13 +87,16 @@ class Squid {
     acceleration = new PVector(0, 0);
     float angle = random(TWO_PI);
     velocity = new PVector(cos(angle), sin(angle));
-    //int direction = 0;
+
     this.teamID = teamID;
     this.ikaNumber = ikaNumber;
     this.weapon = (teamID + ikaNumber) % 3;
+
     life = 3;
+    remainInk = 400;
     paintPoint = 0;
     isPlaying = true;
+    deadTime = 10;
   }
 
   void RandomWalkAcc(){
@@ -117,7 +112,6 @@ class Squid {
 
   void RandomWalkVelAngle(){
     float ang = random(TWO_PI);
-    Random rnd = new Random();
     this.velocity.add(new PVector(cos(ang), sin(ang)));
   }
 
@@ -126,8 +120,9 @@ class Squid {
   }
 
   void SlowDown(){
-    if(this.velocity.mag() > 10)  this.velocity.mult(0.8);
+    if(this.velocity.mag() > 5)  this.velocity.mult(0.8);
   }
+
 
   void IsDead(){
     if(life == 0){
@@ -150,15 +145,25 @@ class Squid {
         }
       }
 
-
+      this.StopWalking();
       teams[killTeamID].members[killSquidID].kill++;
-
       sePlayer.play();
       sePlayer.rewind();
 
-      this.position = teams[this.teamID].respawn;
-      this.life = 3;
+      this.deadTime = 10;
+
       println("dead!");
+    }
+  }
+
+  void Respawn(){
+    if(this.isPlaying == false) this.deadTime--;
+    if(this.deadTime == 0) {
+    this.isPlaying = true;
+    this.position = teams[this.teamID].respawn;
+    this.life = 3;
+    this.remainInk = 100;
+    this.deadTime = 10;
     }
   }
 
@@ -172,9 +177,8 @@ class Squid {
     return cells[(int)(pos.x/CELLSIZE)][(int)(pos.y/CELLSIZE)];
   }
 
-  void setCell(int x, int y, Cell newCell){
-    cells[x][y] = newCell;
-    return;
+  void setCell(PVector pos, Cell newCell){
+    cells[(int)(pos.x/CELLSIZE)][(int)(pos.y/CELLSIZE)] = newCell;
   }
 
   void Walk(){
@@ -191,158 +195,60 @@ class Squid {
     }
 
 
-
-    void ToBeInFrame(){
-      while(this.x < 0)          this.x = this.x + FIELDSIZEX;
-      while(this.x >= FIELDSIZEX)     this.x = this.x - FIELDSIZEX;
-      while(this.y < 0)          this.y = this.y + FIELDSIZEY;
-      while(this.y >= FIELDSIZEY)    this.y = this.y - FIELDSIZEY;
-    }
-
-
     void DrawSquid(){
 
       pushMatrix();
       translate(this.position.x,this.position.y);
       text(String.valueOf(ikaNumber+1),-16,-16);
 
-
-      Random rnd = new Random();
       rotate(this.velocity.heading() + PI/2 );
       shape(ikaShape,-9,-9,6*this.life,6*this.life);
       popMatrix();
-
-
-     /*
-      if(Math.abs(vx) > Math.abs(vy)){
-        if(vx > 0){rotate(PI     /2); direction = RIGHT ;}
-        else if(vx == 0){
-          direction = rnd.nextInt(2) + 2;
-        }
-        else{       rotate(PI  *3 /2); direction = LEFT  ;}
-        }else if(Math.abs(vx) == Math.abs(vy)){
-          if(vx > 0){
-            rotate(PI/2);
-            direction = RIGHT;
-          }
-          else if(vx == 0){
-            direction = rnd.nextInt(2) + 2;
-          }
-          else{
-            rotate(PI  *3 /2); direction = LEFT ;
-          }
-        }
-        else{
-          if(vy > 0){rotate(PI ); direction = UP ;}
-          else if(vy == 0){
-            direction = rnd.nextInt(2);
-          }
-          else{
-            rotate(0);
-            direction = DOWN;
-          }
-        }
-
-        */
-
-      }
+    }
 
       void Shot(){
         this.SlowDown();
-        boolean isWall = false;
+        for (int i = 1 ; i < reach[this.weapon] ;i++){
+          for (int j = 0; j < 2 * range[this.weapon]; j++){
+                if(this.remainInk < 0) return;
+                PVector splash = PVector.fromAngle(this.velocity.heading() + radians(range[this.weapon] - j) ).mult((float)(i * CELLSIZE));
+                PVector ppos = PVector.add(this.position, splash);
+                if(IsInFrame(ppos)){
+                  if(getCell(ppos).state != WALL){
 
-        /*
-        switch(direction){
-          case UP:
-          for (int i = 0 ; i < range[this.weapon] ;i++){
-            for (int j = 0 ; j < reach[this.weapon];j++){
-              int px = (Math.round(this.position.x / CELLSIZE) - i - (range[this.weapon] / 2));
-              int py = Math.round(this.position.y / CELLSIZE) - j;
-              if(px < FIELDSIZEX/CELLSIZE && py < FIELDSIZEY/CELLSIZE && px >= 0 && py >=0){
-                if(cells[px][py].state == WALL){
-                  isWall = true;
-                  break;
-                }
-                cells[px][py].Painted(this.teamID,this.ikaNumber);
-              }
-            }
-            if(isWall) break;
+                    this.remainInk--;
+                    cells[(int)(ppos.x/CELLSIZE)][(int)(ppos.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
+                    }else{
+                      break;
+                      }
+                  }
           }
-
-          break;
-          case DOWN:
-          for (int i = 0 ; i < range[this.weapon] ;i++){
-            for (int j = 0 ; j < reach[this.weapon];j++){
-              int px = (Math.round(this.position.x / CELLSIZE) - i - (range[this.weapon] / 2));
-              int py = Math.round(this.position.y / CELLSIZE) + j;
-              if(px < FIELDSIZEX/CELLSIZE && py < FIELDSIZEY/CELLSIZE && px >= 0 && py >=0){
-                if(cells[px][py].state == WALL){
-                  isWall = true;
-                  break;
-                }
-                cells[px][py].Painted(this.teamID,this.ikaNumber);
-              }
-            }
-            if(isWall) break;
-          }
-          break;
-
-          case LEFT:
-          for (int i = 0 ; i < reach[this.weapon] ;i++){
-            for (int j = 0 ; j < range[this.weapon];j++){
-              int px = Math.round(this.position.x / CELLSIZE) - i ;
-              int py = Math.round(this.position.y / CELLSIZE) - j - (range[this.weapon] / 2);
-              if(px < FIELDSIZEX/CELLSIZE && py < FIELDSIZEY/CELLSIZE && px >= 0 && py >=0){
-                if(cells[px][py].state == WALL){
-                  isWall = true;
-                  break;
-                }
-                cells[px][py].Painted(this.teamID,this.ikaNumber);
-              }
-            }
-            if(isWall) break;
-          }
-          break;
-
-          case RIGHT:
-          for (int i = 0 ; i < reach[this.weapon] ;i++){
-            for (int j = 0 ; j < range[this.weapon];j++){
-              int px = Math.round(this.position.x / CELLSIZE) + i;
-              int py = Math.round(this.position.y / CELLSIZE) + j- (range[this.weapon] / 2);
-              if(px < FIELDSIZEX/CELLSIZE && py < FIELDSIZEY/CELLSIZE && px >= 0 && py >=0){
-
-                if(cells[px][py].state == WALL){
-                  isWall = true;
-                  break;
-                }
-                cells[px][py].Painted(this.teamID,this.ikaNumber);
-              }
-            }
-            if(isWall) break;
-          }
-          break;
-
         }
-
-        */
       }
 
 
 
       void Paint(){
+          this.Respawn();
+          if (this.isPlaying == false) return;
+
           this.IsDead();
           this.Walk();
           this.DrawSquid();
 
 
           if(getCell(this.position).state == BLANK){
+            this.RandomWalkVelAngle();
             this.SlowDown();
+            this.remainInk += 30;
           }
           else if(getCell(this.position).teamID == this.teamID){
             this.RandomWalkVelAngle();
+            if (this.remainInk < 380) this.remainInk += 200;
+
             this.life = 3;
             }else{
-              this.velocity.mult(0.4);
+              this.velocity.mult(0.2);
               this.life--;
             }
 
@@ -352,10 +258,15 @@ class Squid {
 
             // ブキの発射タイミング
             Random rnd = new Random();
-            if(this.weapon == ROLLER && (frameCount % 50 > 20)) this.Shot();
-            if(this.weapon == SHOOTER && (frameCount % 50 > 5)) this.Shot();
-            else if ((frameCount + rnd.nextInt(25))% (10 * shotRate[this.weapon])  == 0) this.Shot();
+            if ((frameCount + rnd.nextInt(25))% shotRate[this.weapon] == 0) this.Shot();
 
+            /*
+
+
+            if(this.weapon == ROLLER && (frameCount % 50 > 20)) this.Shot();
+            if(this.weapon == SHOOTER && (frameCount % 50 > 3)) this.Shot();
+            else if ((frameCount + rnd.nextInt(25))% (10 * shotRate[this.weapon])  == 0) this.Shot();
+            */
 
         }
 
