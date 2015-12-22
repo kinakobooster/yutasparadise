@@ -8,7 +8,7 @@ public static final int[] reach = {6,3,20};
 public static final int[] range = {15,80,5}; //degree
 public static final int[] shotRate = {4,2,20};
 public static final String[] weaponStr = {"シューター","ローラー","チャージャー"};
-
+public static final int RESPAWNFRAME = 25;
 
 class Team{
   int teamID;
@@ -97,7 +97,7 @@ class Squid {
     remainInk = 400;
     paintPoint = 0;
     isPlaying = true;
-    deadTime = 10;
+    deadTime = RESPAWNFRAME;
   }
 
   void RandomWalkAcc(){
@@ -151,7 +151,7 @@ class Squid {
       sePlayer.play();
       sePlayer.rewind();
 
-      this.deadTime = 10;
+      this.deadTime = RESPAWNFRAME;
 
       println("dead!");
     }
@@ -164,7 +164,7 @@ class Squid {
     this.position = teams[this.teamID].respawn;
     this.life = 3;
     this.remainInk = 100;
-    this.deadTime = 10;
+    this.deadTime = 25;
     }
   }
 

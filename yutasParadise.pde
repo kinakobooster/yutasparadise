@@ -104,9 +104,9 @@ void draw() {
       break;
 
     case  ENDBATTLE :
-
-    noLoop();
-    break;
+      EndGame();
+      noLoop();
+      break;
 
 
   }
@@ -115,6 +115,15 @@ void draw() {
 
 
 
+
+  }
+
+  void EndGame(){
+    stroke(200);
+    fill(50,50);
+    rect(FIELDSIZEX/2 - 60,FIELDSIZEY/2 - 20 , 120,40);
+    fill(255);
+    text("リセット" ,FIELDSIZEX/2 -20 ,FIELDSIZEY/2 + 10);
 
   }
 
@@ -144,7 +153,7 @@ void draw() {
           if(numberOfTeams > 1)numberOfTeams--;
         }
         if(RectOver((int)teanNumPos.x +85 , (int)teanNumPos.y, 15, 15)){
-          if(numberOfTeams < 5) numberOfTeams++;
+          if(numberOfTeams < 4) numberOfTeams++;
         }
         if(RectOver((int)ikaNumPos.x + 60, (int)ikaNumPos.y, 15, 15)){
           if(numberOfIka > 1)numberOfIka--;
@@ -152,8 +161,16 @@ void draw() {
         if(RectOver((int)ikaNumPos.x + 85, (int)ikaNumPos.y, 15, 15)){
           if(numberOfIka < 9)numberOfIka++;
         }
+    }
+
+    if (gameState == ENDBATTLE){
+      if(RectOver(FIELDSIZEX/2 - 60,FIELDSIZEY/2 - 20 , 120,40)){
+        setup();
+        loop();
+      }
 
     }
+
   }
 
   boolean RectOver( int x, int y, int w,int h){
@@ -179,13 +196,6 @@ void draw() {
       rect(0,0,FIELDSIZEX,FIELDSIZEY); //field
 
       rect(startBtnPos.x, startBtnPos.y, 60, 30);
-      /*
-      rect(teanNumPos.x +60 , teanNumPos.y, 15, 15);
-      rect(teanNumPos.x +85 , teanNumPos.y, 15, 15);
-      rect(ikaNumPos.x + 60, ikaNumPos.y, 15, 15);
-      rect(ikaNumPos.x + 85, ikaNumPos.y, 15, 15);
-      */
-
 
       noStroke();
       fill(255);
