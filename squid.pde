@@ -1,6 +1,9 @@
+// Team settings
 final String[] teamNameDefault = {"アルファチーム","ブラボーチーム","クレイジーウンチ","ダイブツレクイエム"};
 final color[] teamColorDefault = {#d88b25, #503ba0,#428944,#c25779};
 final int PADDING = 40;
+
+// weapon
 public static final int SHOOTER = 0;
 public static final int ROLLER  = 1;
 public static final int CHARGER = 2;
@@ -8,6 +11,8 @@ public static final int[] reach = {6,3,20};
 public static final int[] range = {15,80,5}; //degree
 public static final int[] shotRate = {4,2,20};
 public static final String[] weaponStr = {"シューター","ローラー","チャージャー"};
+
+
 public static final int RESPAWNFRAME = 25;
 
 class Team{
@@ -112,8 +117,9 @@ class Squid {
   }
 
   void RandomWalkVelAngle(){
-    float ang = random(TWO_PI);
-    this.velocity.add(new PVector(cos(ang), sin(ang)));
+//    float ang = random(TWO_PI);
+//    PVector v = new PVector.fromAngle(this.velocity.heading() + random(PI) - HALF_PI);
+    this.velocity.add(PVector.fromAngle(this.velocity.heading() + random(TWO_PI - 1) - PI - 0.5));
   }
 
   void RandomWalkPos(){
