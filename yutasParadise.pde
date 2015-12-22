@@ -19,8 +19,8 @@ Team[] teams;
 public final color black = (12);  //Blank floor color
 public final color gray = (220);  //Wall color
 
-public static final int NUMBEROFIKA = 4;
-public static final int NUMBEROFTEAMS = 4;
+public static int numberOfIka = 4;
+public static int numberOfTeams = 4;
 public static final int FIELDSIZEX = 600;
 public static final int FIELDSIZEY= 600;
 
@@ -32,6 +32,11 @@ public static final int CELLNUMBERY = Math.round(FIELDSIZEY / CELLSIZE);
 public static final int BEFOREBATTLE = 0;
 public static final int BATTLE = 1;
 public static final int ENDBATTLE = 2;
+
+public static PVector startBtnPos = new PVector(FIELDSIZEX + 20, FIELDSIZEY /2 - 40);
+public static PVector teanNumPos = new PVector(FIELDSIZEX + 20, FIELDSIZEY /2 + 40);
+public static PVector ikaNumPos = new PVector(FIELDSIZEX + 20, FIELDSIZEY /2 + 80);
+
 
 int startTime;
 int gameState;
@@ -70,11 +75,7 @@ void setup() {
   noStroke();
   background(black);
 
-  // team initialization
-  teams = new Team[NUMBEROFTEAMS];
-  for(int i = 0; i < NUMBEROFTEAMS; i++){
-    teams[i] = new Team(i);
-  }
+
   gameState = BEFOREBATTLE;
 
 }
@@ -130,14 +131,32 @@ void draw() {
     }
   }
   void mousePressed(){
-    if(gameState == BEFOREBATTLE && RectOver(FIELDSIZEX + 20, FIELDSIZEY /2 - 40, 60, 40) ) {
-      gameState = BATTLE;
-      bgmPlayer.play();
-      startTime = timer;
+    if(gameState == BEFOREBATTLE){
+        if (RectOver(FIELDSIZEX + 20, FIELDSIZEY /2 - 40, 60, 40) ) {
+        // team initialization
+        teams = new Team[numberOfTeams];
+        for(int i = 0; i < numberOfTeams; i++) teams[i] = new Team(i);
+        gameState = BATTLE;
+        bgmPlayer.play();
+        startTime = timer;
+        }
+        if (RectOver((int)teanNumPos.x +60 , (int)teanNumPos.y, 15, 15)){
+          if(numberOfTeams > 1)numberOfTeams--;
+        }
+        if(RectOver((int)teanNumPos.x +85 , (int)teanNumPos.y, 15, 15)){
+          if(numberOfTeams < 5) numberOfTeams++;
+        }
+        if(RectOver((int)ikaNumPos.x + 60, (int)ikaNumPos.y, 15, 15)){
+          if(numberOfIka > 1)numberOfIka--;
+        }
+        if(RectOver((int)ikaNumPos.x + 85, (int)ikaNumPos.y, 15, 15)){
+          if(numberOfIka < 9)numberOfIka++;
+        }
+
     }
   }
 
-  boolean RectOver(int x,int y, int w,int h){
+  boolean RectOver( int x, int y, int w,int h){
   if (mouseX >= x && mouseX <= x+w &&
       mouseY >= y && mouseY <= y+h) {
     return true;
@@ -147,14 +166,35 @@ void draw() {
   }
 
     void BattleSetup(){
+      //ステータス画面を掃除
+      fill(0);
+      rect(FIELDSIZEX, 0, 400, height);
+
+
+
+
+
       noFill();
       stroke(200);
-      rect(0,0,FIELDSIZEX,FIELDSIZEY);
-      rect(FIELDSIZEX + 20, FIELDSIZEY /2 - 40, 60, 40);
+      rect(0,0,FIELDSIZEX,FIELDSIZEY); //field
+
+      rect(startBtnPos.x, startBtnPos.y, 60, 30);
+      /*
+      rect(teanNumPos.x +60 , teanNumPos.y, 15, 15);
+      rect(teanNumPos.x +85 , teanNumPos.y, 15, 15);
+      rect(ikaNumPos.x + 60, ikaNumPos.y, 15, 15);
+      rect(ikaNumPos.x + 85, ikaNumPos.y, 15, 15);
+      */
+
 
       noStroke();
       fill(255);
-      text("スタート", FIELDSIZEX + 40, FIELDSIZEY /2 -20);
+      text("スタート", startBtnPos.x + 20,startBtnPos.y + 20);
+
+      text("チームのカズ  ▼"+ numberOfTeams+ " ▲",teanNumPos.x, teanNumPos.y+15);
+      text("イカのカズ　▼ "+ numberOfIka + " ▲",ikaNumPos.x, ikaNumPos.y + 15);
+
+
 
     }
 
@@ -176,9 +216,9 @@ void draw() {
           fill(0);
           rect(FIELDSIZEX, 0, 400, height);
 
-          for(int i=0; i <NUMBEROFTEAMS; i++){
+          for(int i=0; i <numberOfTeams; i++){
             teams[i].paintPoint = 0;
-            for(int j=0; j <NUMBEROFIKA; j++){
+            for(int j=0; j <numberOfIka; j++){
               teams[i].members[j].paintPoint = 0;
             }
 
@@ -199,7 +239,7 @@ void draw() {
           for(int i = 0; i < teams.length ; i++ ){
             fill(teams[i].teamColor);
             text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", width - 380,50 + i * 140);
-            for(int j = 0; j < NUMBEROFIKA; j++){
+            for(int j = 0; j < numberOfIka; j++){
               text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"
               + weaponStr[teams[i].members[j].weapon] + "\nキル "
               + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , width - 380 + j* 80 ,50 + i * 140 + 20);

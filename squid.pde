@@ -17,7 +17,7 @@ class Team{
 
 
   String teamName;
-  Squid[] members = new Squid[NUMBEROFIKA];
+  Squid[] members = new Squid[numberOfIka];
   int paintPoint;
 
   Team(int teamID){
@@ -47,16 +47,16 @@ class Team{
     }
 
     this.teamName = teamNameDefault[teamID];
-    
 
-    for (int i=0;i< NUMBEROFIKA;i++){
+
+    for (int i=0;i< numberOfIka;i++){
       members[i] = new Squid(teamID, i);
       members[i].position = this.respawn;
     }
   }
 
   void Paint(){
-    for(int i = 0; i < NUMBEROFIKA; i++) members[i].Paint();
+    for(int i = 0; i < numberOfIka; i++) members[i].Paint();
   }
 
 
