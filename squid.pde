@@ -65,6 +65,7 @@ class Squid {
   PVector position;
   PVector velocity;
   PVector acceleration;
+
   float r;
 
   int weapon;
@@ -91,7 +92,7 @@ class Squid {
 
     this.teamID = teamID;
     this.ikaNumber = ikaNumber;
-    this.weapon = (teamID + ikaNumber) % WEAPONCOUNT;
+    this.weapon = (teamID + ikaNumber + (int)random(100)) % WEAPONCOUNT;
     this.shotCharge = 0;
 
     life = 3;
