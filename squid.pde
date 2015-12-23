@@ -3,17 +3,11 @@ final String[] teamNameDefault = {"アルファチーム","ブラボーチーム
 final color[] teamColorDefault = {#d88b25, #503ba0,#428944,#c25779};
 final int PADDING = 40;
 
-// weapon
-public static final int SHOOTER = 0;
-public static final int ROLLER  = 1;
-public static final int CHARGER = 2;
-public static final int[] reach = {6,3,20};
-public static final int[] range = {15,80,5}; //degree
-public static final int[] shotRate = {4,2,20};
-public static final String[] weaponStr = {"シューター","ローラー","チャージャー"};
+
 
 
 public static final int RESPAWNFRAME = 25;
+public static final int INKTANKSIZE  = 100;
 
 class Team{
   int teamID;
@@ -75,6 +69,8 @@ class Squid {
 
   int weapon;
   int remainInk;
+  int shotCharge;
+  int shotDelay;
 
 
   int ikaNumber;
@@ -89,17 +85,17 @@ class Squid {
   boolean isPlaying;
 
   Squid(int teamID,int ikaNumber){
-
     acceleration = new PVector(0, 0);
     float angle = random(TWO_PI);
     velocity = new PVector(cos(angle), sin(angle));
 
     this.teamID = teamID;
     this.ikaNumber = ikaNumber;
-    this.weapon = (teamID + ikaNumber) % 3;
+    this.weapon = (teamID + ikaNumber) % WEAPONCOUNT;
+    this.shotCharge = 0;
 
     life = 3;
-    remainInk = 400;
+    remainInk = INKTANKSIZE;
     paintPoint = 0;
     isPlaying = true;
     deadTime = RESPAWNFRAME;
@@ -117,9 +113,7 @@ class Squid {
   }
 
   void RandomWalkVelAngle(){
-//    float ang = random(TWO_PI);
-//    PVector v = new PVector.fromAngle(this.velocity.heading() + random(PI) - HALF_PI);
-    this.velocity.add(PVector.fromAngle(this.velocity.heading() + random(TWO_PI - 1) - PI - 0.5));
+    this.velocity.add(PVector.fromAngle(this.velocity.heading() + random(TWO_PI - 1) - PI - 0.5).mult(2));
   }
 
   void RandomWalkPos(){
@@ -127,7 +121,7 @@ class Squid {
   }
 
   void SlowDown(){
-    if(this.velocity.mag() > 5)  this.velocity.mult(0.8);
+    if(this.velocity.mag() > weapons[this.weapon].maxWalkSpeed )  this.velocity.mult(0.8);
   }
 
 
@@ -151,7 +145,6 @@ class Squid {
           }
         }
       }
-
       this.StopWalking();
       teams[killTeamID].members[killSquidID].kill++;
       sePlayer.play();
@@ -166,11 +159,11 @@ class Squid {
   void Respawn(){
     if(this.isPlaying == false) this.deadTime--;
     if(this.deadTime == 0) {
-    this.isPlaying = true;
-    this.position = teams[this.teamID].respawn;
-    this.life = 3;
-    this.remainInk = 100;
-    this.deadTime = 25;
+      this.isPlaying = true;
+      this.position = teams[this.teamID].respawn;
+      this.life = 3;
+      this.remainInk = INKTANKSIZE;
+      this.deadTime = 25;
     }
   }
 
@@ -191,7 +184,7 @@ class Squid {
   void Walk(){
     PVector nextPos = PVector.add(this.velocity,this.position);
     if(IsInFrame(nextPos) && getCell(nextPos).state != WALL ){
-        this.position = nextPos;
+      this.position = nextPos;
       }else{
         this.velocity.mult(-0.7);
       }
@@ -213,67 +206,87 @@ class Squid {
       popMatrix();
     }
 
-      void Shot(){
-        this.SlowDown();
-        for (int i = 1 ; i < reach[this.weapon] ;i++){
-          for (int j = 0; j < 2 * range[this.weapon]; j++){
-                if(this.remainInk < 0) return;
-                PVector splash = PVector.fromAngle(this.velocity.heading() + radians(range[this.weapon] - j) ).mult((float)(i * CELLSIZE));
-                PVector ppos = PVector.add(this.position, splash);
-                if(IsInFrame(ppos)){
-                  if(getCell(ppos).state != WALL){
+    void ShotPrepare(){
+      if(this.remainInk < 0) return;
+      if(this.shotDelay < 0) {
+        this.shotDelay--;
+        return;
+      }
 
-                    this.remainInk--;
-                    cells[(int)(ppos.x/CELLSIZE)][(int)(ppos.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
-                    }else{
-                      return;
-                      }
-                  }
-          }
+      this.SlowDown();
+
+      if (this.shotCharge == 0 ){
+        this.shotCharge = weapons[this.weapon].chargeTime;
+      }else{
+      this.shotCharge--;
+      }
+
+      if (this.shotCharge == 0 ) {
+        this.Shot();
+        this.shotDelay = weapons[this.weapon].shotDelay;
         }
+
+      }
+      void Shot(){
+        for (int i = 1 ; i < weapons[this.weapon].reach; i++){
+          for (int j = 0; j < 2 * weapons[this.weapon].range; j++){
+
+            PVector splash = PVector.fromAngle(this.velocity.heading() + radians(weapons[this.weapon].range - j) ).mult((float)(i * CELLSIZE));
+            PVector ppos = PVector.add(this.position, splash);
+            if(IsInFrame(ppos)){
+              if(getCell(ppos).state != WALL){
+                this.remainInk--;
+                cells[(int)(ppos.x/CELLSIZE)][(int)(ppos.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
+                }else{
+                  return;
+                }
+              }
+            }
+          }
       }
 
 
 
+
+
       void Paint(){
-          this.Respawn();
-          if (this.isPlaying == false) return;
+        this.Respawn();
+        if (this.isPlaying == false) return;
 
-          this.IsDead();
-          this.Walk();
-          this.DrawSquid();
+        this.IsDead();
+        this.Walk();
+        this.DrawSquid();
+        //あしもとの状況で動きを変える
+        //塗られてないから歩く
+        if(getCell(this.position).state == BLANK){
+          this.RandomWalkVelAngle();
+          this.SlowDown();
+          if (this.remainInk < INKTANKSIZE) this.remainInk += 30;
+        }
+        // 自陣にいる
+        else if(getCell(this.position).teamID == this.teamID){
+          this.RandomWalkVelAngle();
+          if (this.remainInk < INKTANKSIZE) this.remainInk += 200;
+          this.life = 3;
 
-
-          if(getCell(this.position).state == BLANK){
-            this.RandomWalkVelAngle();
-            this.SlowDown();
-            this.remainInk += 30;
+          }else{ //敵インクを踏んだ
+            this.velocity.mult(0.2);
+            this.life--;
           }
-          else if(getCell(this.position).teamID == this.teamID){
-            this.RandomWalkVelAngle();
-            if (this.remainInk < 380) this.remainInk += 200;
 
-            this.life = 3;
-            }else{
-              this.velocity.mult(0.2);
-              this.life--;
-            }
+          // 足元を塗る
+          cells[(int)(this.position.x/CELLSIZE)][(int)(this.position.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
+          this.ShotPrepare();
+          // ブキの発射タイミング
 
-            // 足元を塗る
+          Random rnd = new Random();
+          if ((frameCount + rnd.nextInt(25))% weapons[this.weapon].shotRate == 0) this.ShotPrepare();
 
-            cells[(int)(this.position.x/CELLSIZE)][(int)(this.position.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
-
-            // ブキの発射タイミング
-            Random rnd = new Random();
-            if ((frameCount + rnd.nextInt(25))% shotRate[this.weapon] == 0) this.Shot();
-
-            /*
-
-
-            if(this.weapon == ROLLER && (frameCount % 50 > 20)) this.Shot();
-            if(this.weapon == SHOOTER && (frameCount % 50 > 3)) this.Shot();
-            else if ((frameCount + rnd.nextInt(25))% (10 * shotRate[this.weapon])  == 0) this.Shot();
-            */
+          /*
+          if(this.weapon == ROLLER && (frameCount % 50 > 20)) this.Shot();
+          if(this.weapon == SHOOTER && (frameCount % 50 > 3)) this.Shot();
+          else if ((frameCount + rnd.nextInt(25))% (10 * shotRate[this.weapon])  == 0) this.Shot();
+          */
 
         }
 
