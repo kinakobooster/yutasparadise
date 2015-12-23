@@ -99,8 +99,8 @@ class Squid {
 
     this.teamID = teamID;
     this.ikaNumber = ikaNumber;
-    this.weapon = (teamID + ikaNumber + (int)random(8)) % WEAPONCOUNT;
-    this.intelligece = (teamID + ikaNumber +(int)random(1)) % INTELLIGENCECOUNT;
+    this.weapon = (teamID + ikaNumber + (int)random(12)) % WEAPONCOUNT;
+    this.intelligece = (teamID + ikaNumber +(int)random(4)) % INTELLIGENCECOUNT;
     this.shotCharge = 0;
 
     life = 3;
@@ -122,6 +122,7 @@ class Squid {
   }
 
   void RandomWalkVelAngle(){
+    //if(teamID == 0 && ikaNumber == 0) return;
     this.velocity.add(PVector.fromAngle(this.velocity.heading() + random(TWO_PI - 1) - PI - 0.5).mult(2));
   }
 

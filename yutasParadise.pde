@@ -131,14 +131,14 @@ void EndGame(){
 void mouseDragged() {
 
   //壁を描く
-  int onMouseCellx = Math.round(mouseX / CELLSIZE);
-  int onMouseCelly = Math.round(mouseY / CELLSIZE);
+  int onMouseCellx = Math.round(mouseX / CELLSIZE) ;
+  int onMouseCelly = Math.round(mouseY / CELLSIZE) ;
 
-  if ( onMouseCellx > 0 && onMouseCellx < CELLNUMBERX && onMouseCelly > 0 && onMouseCelly < CELLNUMBERY) {
+  if ( onMouseCellx >= 0 && onMouseCellx < CELLNUMBERX && onMouseCelly >= 0 && onMouseCelly < CELLNUMBERY) {
     cells[onMouseCellx][onMouseCelly].ChangeState(WALL);
-    cells[onMouseCellx][Math.abs(onMouseCelly - CELLNUMBERY)].ChangeState(WALL);
-    cells[Math.abs(onMouseCellx - CELLNUMBERX)][onMouseCelly].ChangeState(WALL);
-    cells[Math.abs(onMouseCellx - CELLNUMBERX)][Math.abs(onMouseCelly - CELLNUMBERY)].ChangeState(WALL);
+    cells[onMouseCellx][Math.abs(onMouseCelly - (CELLNUMBERY-1))].ChangeState(WALL);
+    cells[Math.abs(onMouseCellx - (CELLNUMBERX-1))][onMouseCelly].ChangeState(WALL);
+    cells[Math.abs(onMouseCellx - (CELLNUMBERX-1))][Math.abs(onMouseCelly - (CELLNUMBERY-1))].ChangeState(WALL);
   }
 }
 
@@ -234,7 +234,7 @@ void BattleSetup(){
 
         for (int x=0; x<FIELDSIZEX/CELLSIZE; x++) {
           for (int y=0; y<FIELDSIZEY/CELLSIZE; y++) {
-            if(cells[x][y].state != BLANK){
+            if(cells[x][y].state != BLANK && cells[x][y].state != WALL){
               teams[cells[x][y].teamID].paintPoint++;
               teams[cells[x][y].teamID].members[cells[x][y].whoPainted].paintPoint++;
             }
@@ -252,6 +252,19 @@ void BattleSetup(){
         }
       }
     }
+    void keyPressed() {
+      if(gameState == BATTLE){
+        if (key == CODED) {
+          switch(keyCode){
+            case UP    : teams[0].members[0].velocity.y -= 4; break;
+            case DOWN  : teams[0].members[0].velocity.y += 4; break;
+            case RIGHT : teams[0].members[0].velocity.x += 4; break;
+            case LEFT  : teams[0].members[0].velocity.x -= 4; break;
+          }
+        }
+      }
+    }
+
 
     void stop()
     {
