@@ -4,7 +4,11 @@ final color[] teamColorDefault = {#d88b25, #503ba0,#428944,#c25779};
 final int PADDING = 40;
 
 
-
+public static final int NOBRAIN= 0;
+public static final int DEFENSIVE= 1;
+public static final int AGGRESSIVE= 2;
+public static final int INTELLIGENCECOUNT= 3;
+public static String[] INTELIGENCENAME = {"N","D","A"};
 
 public static final int RESPAWNFRAME = 25;
 public static final int INKTANKSIZE  = 100;
@@ -82,6 +86,7 @@ class Squid {
   int teamID;
   int paintPoint;
   int deadTime;
+  int intelligece;
 
   boolean isPlaying;
 
@@ -92,7 +97,8 @@ class Squid {
 
     this.teamID = teamID;
     this.ikaNumber = ikaNumber;
-    this.weapon = (teamID + ikaNumber + (int)random(100)) % WEAPONCOUNT;
+    this.weapon = (teamID + ikaNumber + (int)random(3)) % WEAPONCOUNT;
+    this.intelligece = (teamID + ikaNumber +(int)random(1)) % INTELLIGENCECOUNT;
     this.shotCharge = 0;
 
     life = 3;
@@ -120,6 +126,43 @@ class Squid {
   void RandomWalkPos(){
     this.velocity = new PVector(random(2)-1,random(2)-1);
   }
+
+  void ApproachToTeammate(){
+    PVector closestFriendsPos;
+    int closestID = 0;
+    float closestDist = 100;
+    for (int i = 0; i < numberOfIka; i++){
+      if (i == this.ikaNumber) continue;
+      float d = this.position.dist(teams[this.teamID].members[i].position);
+      if (closestDist > d){
+        closestDist = d;
+        closestID = i;
+      }
+    }
+    this.velocity.add(PVector.sub(teams[this.teamID].members[closestID].position,this.position).normalize());
+  }
+
+  void ApproachToEnemy(){
+    PVector closestEnemysPos;
+    int closestTeamID = 0;
+    int closestMemberID = 0;
+    float closestDist = 200;
+    for (int i = 0; i < numberOfTeams; i++){
+      if(i == this.teamID) continue;
+      for (int j = 0; j < numberOfIka; j++){
+        float d = this.position.dist(teams[i].members[j].position);
+        if (closestDist > d){
+          closestDist = d;
+          closestTeamID = i;
+          closestMemberID = j;
+        }
+      }
+    }
+
+    this.velocity.add(PVector.sub(teams[closestTeamID].members[closestMemberID].position,this.position).normalize());
+  }
+
+
 
   void SlowDown(){
     if(this.velocity.mag() > weapons[this.weapon].maxWalkSpeed )  this.velocity.mult(0.8);
@@ -200,7 +243,7 @@ class Squid {
       fill(255);
       pushMatrix();
       translate(this.position.x,this.position.y);
-      text(String.valueOf(ikaNumber+1),-16,-16);
+      text(String.valueOf(ikaNumber+1) + INTELIGENCENAME[intelligece],-16,-16);
 
       rotate(this.velocity.heading() + PI/2 );
       shape(ikaShape,-9,-9,6*this.life,6*this.life);
@@ -260,13 +303,21 @@ class Squid {
         //あしもとの状況で動きを変える
         //塗られてないから歩く
         if(getCell(this.position).state == BLANK){
+
           this.RandomWalkVelAngle();
           this.SlowDown();
           if (this.remainInk < INKTANKSIZE) this.remainInk += 30;
         }
         // 自陣にいる
+
         else if(getCell(this.position).teamID == this.teamID){
+          if(this.intelligece == DEFENSIVE && frameCount % 6 == 0){
+            this.ApproachToTeammate();
+          }else if(this.intelligece == AGGRESSIVE && frameCount % 6 == 0){
+            this.ApproachToEnemy();
+          }else{
           this.RandomWalkVelAngle();
+          }
           if (this.remainInk < INKTANKSIZE) this.remainInk += 200;
           this.life = 3;
 

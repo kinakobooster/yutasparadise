@@ -243,7 +243,7 @@ void BattleSetup(){
           fill(teams[i].teamColor);
           text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", FIELDSIZEX + 20,50 + i * 140);
           for(int j = 0; j < numberOfIka; j++){
-            text(String.valueOf(j+1) +"ゴウ \n" + teams[i].members[j].paintPoint +"P \n"
+            text(String.valueOf(j+1) +"ゴウ " + INTELIGENCENAME[teams[i].members[j].intelligece] +" \n" + teams[i].members[j].paintPoint +"P \n"
             + weapons[teams[i].members[j].weapon].weaponStr + "\nキル "
             + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , FIELDSIZEX + 20 + j* 80 ,50 + i * 140 + 20);
           }
