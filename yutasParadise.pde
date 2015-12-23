@@ -23,6 +23,8 @@ public static int numberOfIka = 4;
 public static int numberOfTeams = 4;
 public static final int FIELDSIZEX = 600;
 public static final int FIELDSIZEY= 600;
+public static final int STATEVIEWSIZE = 800;
+
 
 public static final int CELLSIZE = 10;
 
@@ -43,7 +45,7 @@ int gameState;
 int timer;
 
 void settings(){
-  size(FIELDSIZEX + 400, FIELDSIZEY);
+  size(FIELDSIZEX + STATEVIEWSIZE, FIELDSIZEY);
 
 }
 
@@ -188,7 +190,7 @@ boolean RectOver( int x, int y, int w,int h){
 void BattleSetup(){
       //ステータス画面を掃除
       fill(0);
-      rect(FIELDSIZEX, 0, 400, height);
+      rect(FIELDSIZEX, 0, STATEVIEWSIZE, height);
 
       //戦場の枠を書く
       noFill();
@@ -220,7 +222,7 @@ void BattleSetup(){
 
       if(frameCount % 25 == 0){
         fill(0);
-        rect(FIELDSIZEX, 0, 400, height);
+        rect(FIELDSIZEX, 0, STATEVIEWSIZE, height);
 
         for(int i=0; i <numberOfTeams; i++){
           teams[i].paintPoint = 0;

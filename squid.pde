@@ -7,8 +7,10 @@ final int PADDING = 40;
 public static final int NOBRAIN= 0;
 public static final int DEFENSIVE= 1;
 public static final int AGGRESSIVE= 2;
-public static final int INTELLIGENCECOUNT= 3;
-public static String[] INTELIGENCENAME = {"N","D","A"};
+public static final int BALANCE= 3;
+
+public static final int INTELLIGENCECOUNT= 4;
+public static String[] INTELIGENCENAME = {"N","D","A","B"};
 
 public static final int RESPAWNFRAME = 25;
 public static final int INKTANKSIZE  = 100;
@@ -97,7 +99,7 @@ class Squid {
 
     this.teamID = teamID;
     this.ikaNumber = ikaNumber;
-    this.weapon = (teamID + ikaNumber + (int)random(3)) % WEAPONCOUNT;
+    this.weapon = (teamID + ikaNumber + (int)random(8)) % WEAPONCOUNT;
     this.intelligece = (teamID + ikaNumber +(int)random(1)) % INTELLIGENCECOUNT;
     this.shotCharge = 0;
 
@@ -311,14 +313,19 @@ class Squid {
         // 自陣にいる
 
         else if(getCell(this.position).teamID == this.teamID){
-          if(this.intelligece == DEFENSIVE && frameCount % 6 == 0){
+          if(this.intelligece == BALANCE && frameCount % 5 == 0){
+            if (this.remainInk > 50) this.ApproachToEnemy();
+            else if (this.remainInk < 20) this.ApproachToTeammate();
+            else this.RandomWalkVelAngle();
+
+          }else if(this.intelligece == DEFENSIVE && frameCount % 6 == 0){
             this.ApproachToTeammate();
-          }else if(this.intelligece == AGGRESSIVE && frameCount % 6 == 0){
+          }else if(this.intelligece == AGGRESSIVE && frameCount % 4 == 0){
             this.ApproachToEnemy();
           }else{
           this.RandomWalkVelAngle();
           }
-          if (this.remainInk < INKTANKSIZE) this.remainInk += 200;
+          if (this.remainInk < INKTANKSIZE) this.remainInk = INKTANKSIZE;
           this.life = 3;
 
           }else{ //敵インクを踏んだ
