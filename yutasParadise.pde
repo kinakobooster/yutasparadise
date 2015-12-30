@@ -1,16 +1,16 @@
-import java.util.Random;
-import ddf.minim.*;
-import java.util.Arrays;
+//import java.util.Random;
+//import ddf.minim.*;
+//import java.util.Arrays;
 
-Minim minim;
-AudioPlayer bgmPlayer;
-AudioPlayer sePlayer;
+//Minim minim;
+//AudioPlayer bgmPlayer;
+//AudioPlayer sePlayer;
 
 PShape ikaShape;
 PFont f;
 
-int i = 0;
-int x = 0;
+//int i = 0;
+//int x = 0;
 
 
 public Cell[][] cells;
@@ -23,7 +23,7 @@ public static int numberOfIka = 4;
 public static int numberOfTeams = 4;
 public static final int FIELDSIZEX = 600;
 public static final int FIELDSIZEY= 600;
-public static final int STATEVIEWSIZE = 800;
+public static final int STATEVIEWSIZE = 600;
 
 
 public static final int CELLSIZE = 10;
@@ -45,23 +45,24 @@ int gameState;
 int timer;
 
 void settings(){
-  size(FIELDSIZEX + STATEVIEWSIZE, FIELDSIZEY);
-
+//  size(FIELDSIZEX + STATEVIEWSIZE, FIELDSIZEY);
+//  size(1200,600);
 }
 
 void setup() {
+  size(1200,600);
   startTime = 0;
   frameRate(25);
   // font settings
-  printArray(PFont.list());
   f = createFont("ikamodoki", 12);
   textFont(f);
 
   // sound settings
+  /*
   minim = new Minim(this);
   bgmPlayer = minim.loadFile("bgm.mp3");
   sePlayer = minim.loadFile("dead.mp3");
-
+*/
 
   // shape settings
   ikaShape = loadShape("ika3.svg");
@@ -151,7 +152,7 @@ void mousePressed(){
       teams = new Team[numberOfTeams];
       for(int i = 0; i < numberOfTeams; i++) teams[i] = new Team(i);
       gameState = BATTLE;
-      bgmPlayer.play();
+//      bgmPlayer.play();
       startTime = timer;
     }
 
@@ -213,9 +214,9 @@ void BattleSetup(){
       }
 
       //イカを動かす
-      for(int i = 0; i < teams.length; i++){
-        teams[i].Paint();
-      }
+
+      for(int i = 0; i < teams.length; i++)  teams[i].Paint();
+
 
       //イカの状態を出す
 
@@ -243,33 +244,37 @@ void BattleSetup(){
         fill(255);
         for(int i = 0; i < teams.length ; i++ ){
           fill(teams[i].teamColor);
-          text(teams[i].teamName + String.valueOf(teams[i].paintPoint) + "P", FIELDSIZEX + 20,50 + i * 140);
+          text(teams[i].teamName + teams[i].paintPoint + "P", FIELDSIZEX + 20,50 + i * 140);
           for(int j = 0; j < numberOfIka; j++){
-            text(String.valueOf(j+1) +"ゴウ " + INTELIGENCENAME[teams[i].members[j].intelligece] +" \n" + teams[i].members[j].paintPoint +"P \n"
+            int k = j + 1;
+            text( k +"ゴウ " + INTELIGENCENAME[teams[i].members[j].intelligece] +" \n" + teams[i].members[j].paintPoint +"P \n"
             + weapons[teams[i].members[j].weapon].weaponStr + "\nキル "
             + teams[i].members[j].kill + "\nデス " + teams[i].members[j].death , FIELDSIZEX + 20 + j* 80 ,50 + i * 140 + 20);
           }
         }
       }
+
     }
     void keyPressed() {
+
       if(gameState == BATTLE){
         if (key == CODED) {
           switch(keyCode){
-            case UP    : teams[0].members[0].velocity.y -= 4; break;
-            case DOWN  : teams[0].members[0].velocity.y += 4; break;
-            case RIGHT : teams[0].members[0].velocity.x += 4; break;
-            case LEFT  : teams[0].members[0].velocity.x -= 4; break;
+            case UP    : teams[0].members[0].velocity.set(0,-6); break;
+            case DOWN  : teams[0].members[0].velocity.set(0,6); break;
+            case RIGHT : teams[0].members[0].velocity.set(6,0); break;
+            case LEFT  : teams[0].members[0].velocity.set(-6,0); break;
           }
         }
       }
+
     }
 
 
     void stop()
     {
-      bgmPlayer.close();
-      sePlayer.close();
-      minim.stop();
+//      bgmPlayer.close();
+//      sePlayer.close();
+//      minim.stop();
       super.stop();
     }
