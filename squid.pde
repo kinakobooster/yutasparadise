@@ -277,9 +277,9 @@ class Squid {
         this.shotDelay--;
         return;
       }
-      if ((frameCount + (int)random(6))% weapons[this.weapon].shotRate != 0) return;
 
-      this.SlowDown();
+
+
 
       if (this.shotCharge == 0 ){
         this.shotCharge = weapons[this.weapon].chargeTime;
@@ -294,6 +294,7 @@ class Squid {
 
       }
       void Shot(){
+        this.SlowDown();
         for (int i = 1 ; i < weapons[this.weapon].reach; i++){
           for (int j = 0; j < 2 * weapons[this.weapon].range; j++){
 
@@ -371,7 +372,8 @@ class Squid {
 
                   // 足元を塗る
                   cells[(int)(this.position.x/CELLSIZE)][(int)(this.position.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
-                  this.ShotPrepare();
+                  //this.ShotPrepare();
+                  if ((frameCount + (int)random(6))% weapons[this.weapon].shotRate != 0) this.ShotPrepare();
 
                 }
 

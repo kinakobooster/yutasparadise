@@ -22,7 +22,7 @@ public static final int[] rangeDefault = {15,80,5 ,180,5,30,40,10, 5,45,120,2}; 
 public static final int[] shotRateDefault   = {4,2,20,1 ,2,3 ,15,9,10,6,2,25};
 public static final int[] chargeTimeDefault = {1,0,10,0 ,3,1 ,20,2,1,2,0,25};
 public static final int[] shotDelayDefault  = {2,4,2 ,0 ,1,3 ,1 ,6,2,4,4,8};
-public static final int[] maxWalkSpeedDefault={8,5,4 ,30,4,12,2 ,6,7,7,2,4};
+public static final int[] maxWalkSpeedDefault={8,5,4 ,30,4,16,2 ,6,7,7,2,4};
 public static final String[] weaponStrDefault =
 {"シューター","ローラー","チャージャー","パブロ","タケ",
 "ボールド","スピナー","バケツ","スイーパー","ブラスター","ダイナモ","リッター"};
