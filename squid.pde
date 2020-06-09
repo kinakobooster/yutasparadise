@@ -15,6 +15,9 @@ public static String[] INTELIGENCENAME = {"N","D","A","B"};
 public static final int RESPAWNFRAME = 25;
 public static final int INKTANKSIZE  = 100;
 
+float PI = 3.14;
+float TWO_PI = PI *2;
+
 class Team{
   int teamID;
   color teamColor;
@@ -111,19 +114,22 @@ class Squid {
   }
 
   void RandomWalkAcc(){
-    Random rnd = new Random();
     this.acceleration.add(new PVector(random(2)-1,random(2)-1));
     this.velocity.add(this.acceleration);
   }
 
   void RandomWalkVel(){
-    Random rnd = new Random();
-    this.velocity.add(new PVector(rnd.nextFloat()*2 -1,rnd.nextFloat()*2 -1));
+    this.velocity.add(new PVector(random(2) -1,random(2) -1));
   }
 
   void RandomWalkVelAngle(){
+
     //if(teamID == 0 && ikaNumber == 0) return;
-    this.velocity.add(PVector.fromAngle(this.velocity.heading() + random(TWO_PI - 1) - PI - 0.5).mult(2));
+    //PVectorの関数がjs対応してない！！！
+    PVector n1 = new PVector(1,0);
+    float theta = random(TWO_PI-1) - PI-0.5;
+    theta += this.velocity.heading2D();
+    this.velocity.add(cos(theta), sin(theta));
   }
 
   void RandomWalkPos(){
@@ -142,7 +148,13 @@ class Squid {
         closestID = i;
       }
     }
-    this.velocity.add(PVector.sub(teams[this.teamID].members[closestID].position,this.position).normalize());
+
+    PVector v1;
+    v1 = new PVector(0,0);
+    v1 = teams[this.teamID].members[closestID].position.get();
+    v1.sub(this.position);
+    v1.normalize();
+    this.velocity.add(v1);
   }
 
   void ApproachToEnemy(){
@@ -161,8 +173,12 @@ class Squid {
         }
       }
     }
-
-    this.velocity.add(PVector.sub(teams[closestTeamID].members[closestMemberID].position,this.position).normalize());
+    PVector v1;
+    v1 = new PVector(0,0);
+    v1 = teams[closestTeamID].members[closestMemberID].position.get();
+    v1.sub(this.position);
+    v1.normalize();
+    this.velocity.add(v1);
   }
 
 
@@ -194,8 +210,8 @@ class Squid {
       }
       this.StopWalking();
       teams[killTeamID].members[killSquidID].kill++;
-      sePlayer.play();
-      sePlayer.rewind();
+      //      sePlayer.play();
+      //      sePlayer.rewind();
 
       this.deadTime = RESPAWNFRAME;
 
@@ -246,7 +262,9 @@ class Squid {
       fill(255);
       pushMatrix();
       translate(this.position.x,this.position.y);
-      text(String.valueOf(ikaNumber+1) + INTELIGENCENAME[intelligece],-16,-16);
+      int k = this.ikaNumber + 1;
+
+      text(k + INTELIGENCENAME[this.intelligece],-16,-16);
 
       rotate(this.velocity.heading() + PI/2 );
       shape(ikaShape,-9,-9,6*this.life,6*this.life);
@@ -260,26 +278,33 @@ class Squid {
         return;
       }
 
-      this.SlowDown();
+
+
 
       if (this.shotCharge == 0 ){
         this.shotCharge = weapons[this.weapon].chargeTime;
-      }else{
-      this.shotCharge--;
-      }
+        }else{
+          this.shotCharge--;
+        }
 
-      if (this.shotCharge == 0 ) {
-        this.Shot();
-        this.shotDelay = weapons[this.weapon].shotDelay;
+        if (this.shotCharge == 0 ) {
+          this.Shot();
+          this.shotDelay = weapons[this.weapon].shotDelay;
         }
 
       }
       void Shot(){
+        this.SlowDown();
         for (int i = 1 ; i < weapons[this.weapon].reach; i++){
           for (int j = 0; j < 2 * weapons[this.weapon].range; j++){
 
-            PVector splash = PVector.fromAngle(this.velocity.heading() + radians(weapons[this.weapon].range - j) ).mult((float)(i * CELLSIZE));
-            PVector ppos = PVector.add(this.position, splash);
+            PVector splash,ppos;
+            float theta;
+            theta = this.velocity.heading2D() + radians(weapons[this.weapon].range - j);
+            splash = new PVector(cos(theta),sin(theta));
+            splash.mult((float)(i * CELLSIZE));
+            ppos = PVector.add(this.position, splash);
+
             if(IsInFrame(ppos)){
               if(getCell(ppos).state != WALL){
                 this.remainInk--;
@@ -290,64 +315,66 @@ class Squid {
               }
             }
           }
-      }
+        }
 
 
 
 
 
-      void Paint(){
-        this.Respawn();
-        if (this.isPlaying == false) return;
+        void Paint(){
 
-        this.IsDead();
-        this.Walk();
-        this.DrawSquid();
-        //あしもとの状況で動きを変える
-        //塗られてないから歩く
-        if(getCell(this.position).state == BLANK){
+          this.Respawn();
+          if (this.isPlaying == false) return;
+          this.IsDead();
 
-          this.RandomWalkVelAngle();
+          this.Walk();
+
+          this.DrawSquid();
+
           this.SlowDown();
-          if (this.remainInk < INKTANKSIZE) this.remainInk += 30;
-        }
-        // 自陣にいる
+          //あしもとの状況で動きを変える
+          //塗られてないから歩く
 
-        else if(getCell(this.position).teamID == this.teamID){
-          if(this.intelligece == BALANCE && frameCount % 5 == 0){
-            if (this.remainInk > 50) this.ApproachToEnemy();
-            else if (this.remainInk < 20) this.ApproachToTeammate();
-            else this.RandomWalkVelAngle();
 
-          }else if(this.intelligece == DEFENSIVE && frameCount % 6 == 0){
-            this.ApproachToTeammate();
-          }else if(this.intelligece == AGGRESSIVE && frameCount % 4 == 0){
-            this.ApproachToEnemy();
-          }else{
-          this.RandomWalkVelAngle();
+          if(getCell(this.position).state == BLANK){
+
+            this.RandomWalkVelAngle();
+            this.SlowDown();
+            if (this.remainInk < INKTANKSIZE) this.remainInk += 30;
           }
-          if (this.remainInk < INKTANKSIZE) this.remainInk = INKTANKSIZE;
-          this.life = 3;
+          // 自陣にいる
 
-          }else{ //敵インクを踏んだ
-            this.velocity.mult(0.2);
-            this.life--;
-          }
 
-          // 足元を塗る
-          cells[(int)(this.position.x/CELLSIZE)][(int)(this.position.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
-          this.ShotPrepare();
-          // ブキの発射タイミング
+          else if(getCell(this.position).teamID == this.teamID){
 
-          Random rnd = new Random();
-          if ((frameCount + rnd.nextInt(25))% weapons[this.weapon].shotRate == 0) this.ShotPrepare();
+            if(this.intelligece == BALANCE && frameCount % 5 == 0){
+              if (this.remainInk > 50) {this.ApproachToEnemy();}
+              else if (this.remainInk < 20){ this.ApproachToTeammate();}
+              else {this.RandomWalkVelAngle();}
 
-          /*
-          if(this.weapon == ROLLER && (frameCount % 50 > 20)) this.Shot();
-          if(this.weapon == SHOOTER && (frameCount % 50 > 3)) this.Shot();
-          else if ((frameCount + rnd.nextInt(25))% (10 * shotRate[this.weapon])  == 0) this.Shot();
-          */
+              }else if(this.intelligece == DEFENSIVE && frameCount % 6 == 0){
+                this.ApproachToTeammate();
+                }else if(this.intelligece == AGGRESSIVE && frameCount % 4 == 0){
+                  this.ApproachToEnemy();
+                  }else{
+                    this.RandomWalkVelAngle();
+                  }
 
-        }
 
-      }
+                  if (this.remainInk < INKTANKSIZE){ this.remainInk = INKTANKSIZE;}
+                  this.life = 3;
+
+
+                  }else{ //敵インクを踏んだ
+                    this.velocity.mult(0.2);
+                    this.life--;
+                  }
+
+                  // 足元を塗る
+                  cells[(int)(this.position.x/CELLSIZE)][(int)(this.position.y/CELLSIZE)].Painted(this.teamID,this.ikaNumber);
+                  //this.ShotPrepare();
+                  if ((frameCount + (int)random(6))% weapons[this.weapon].shotRate != 0) this.ShotPrepare();
+
+                }
+
+              }
